@@ -258,7 +258,7 @@
       const dot = document.createElement('div');
       dot.classList.add('dot');
 
-      if (Math.random() < 0.20) {
+      if (Math.random() < 0.60) {
         dot.classList.add('bonus');
         dot.textContent = '+';
       } else {
@@ -524,8 +524,8 @@ function goHome() {
 <footer style="margin: 10px; font-size: 1rem; color: #aaa;">
   @ Wais Games
 </footer>
-<audio id="button-sound" src="button.mp3" preload="auto"></audio>
-<audio id="game-music" src="musicgame.mp3" preload="auto" loop></audio>
+<audio id="button-sound" src="sounds/button.mp3" preload="auto"></audio>
+<audio id="game-music" src="sounds/musicgame.mp3" preload="auto" loop></audio>
 <script>
   const buttonSound = document.getElementById('button-sound');
   const gameMusic = document.getElementById('game-music');
