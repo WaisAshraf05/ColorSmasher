@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColorSmasher</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Fonts and Styles -->
+  <style>
+    /* Base Styles */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #121222;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      background: #1b1b2d;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .stats {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+    }
+
+    #xp-bar {
+      width: 60%;
+      max-width: 400px;
+      height: 12px;
+      background: #444;
+      border-radius: 8px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    #xp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00e676, #00c853);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    main {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Game Grid */
+    #game {
+      display: grid;
+      grid-template-columns: repeat(6, 60px);
+      grid-template-rows: repeat(6, 60px);
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .dot {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid #fff;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+
+    /* Dot Colors */
+    .red    { background: #e53935; }
+    .blue   { background: #1e88e5; }
+    .green  { background: #43a047; }
+    .yellow { background: #fbc02d; }
+
+    .bonus {
+      background: #fff !important;
+      color: #000;
+      font-weight: bold;
+    }
+
+    /* Dot States */
+    .selected {
+      outline: 3px solid #fff;
+    }
+
+    .hinted {
+      outline: 3px dashed #00e676;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { outline-color: #00e676; }
+      50% { outline-color: transparent; }
+    }
+
+    .dot.remove {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+
+    /* Game Over Text */
+    #game-over {
+      margin-top: 15px;
+      font-size: 1.3rem;
+      color: #ff5252;
+      display: none;
+    }
+
+    /* Button Layout */
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 25px;
+      font-size: 1rem;
+      background: #3f51b5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #303f9f;
+    }
+    .fixed-logo {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  height: 80px; /* Increased height */
+  width: auto;  /* Maintains aspect ratio */
+  z-index: 10;
+}
+.back-btn {
+  position: fixed;
+  bottom: 60px; /* Moved slightly upward */
+  left: 20px;
+  background: #1b1b2d;
+  border: 2px solid #00e676;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 1.2rem;
+  color: #00e676;
+  cursor: pointer;
+  z-index: 20;
+  transition: background 0.3s, color 0.3s;
+}
+.back-btn:hover {
+  background: #00e676;
+  color: #1b1b2d;
+}
+.sound-toggle {
+  position: fixed;
+  bottom: 60px;
+  right: 20px;
+  background: #1b1b2d;
+  border: 2px solid #00e676;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 1.2rem;
+  color: #00e676;
+  cursor: pointer;
+  z-index: 20;
+  transition: background 0.3s, color 0.3s;
+}
+.sound-toggle:hover {
+  background: #00e676;
+  color: #1b1b2d;
+}
+  </style>
+</head>
+<body>
+  <img src="logo.png" alt="ColorSmasher Logo" class="fixed-logo" />
+<button class="back-btn" onclick="goHome()" title="Back">
+  <i class="fas fa-arrow-left"></i>
+</button>
+<button class="sound-toggle" onclick="toggleSound()" title="Toggle Sound">
+  <i id="sound-icon" class="fas fa-volume-up"></i>
+</button>
+<header>
+  <div class="stats">
+    <strong>Score:</strong> <span id="score">0</span> |
+    <strong>High Score:</strong> <span id="highScore">0</span>
+  </div>
+  <div class="stats">
+    <strong>Moves Left:</strong> <span id="moves">20</span> |
+    <strong>Hints Left:</strong> <span id="hints">5</span>
+  </div>
+  <div class="stats">
+    <strong>Level:</strong> <span id="level">1</span> |
+    <strong>XP:</strong> <span id="xp">0</span>/<span id="nextXP">100</span>
+  </div>
+  <div id="xp-bar">
+    <div id="xp-fill"></div>
+  </div>
+</header>
+
+<main>
+  <div id="game"></div>
+  <div id="game-over">Game Over! Click Restart to play again.</div>
+<div class="buttons">
+  <button onclick="initGame()">Restart</button>
+  <button onclick="useShuffle()">Shuffle</button>
+  <button onclick="useHint()">Hint</button>
+</div>
+</main>
+
+<script>
+  const colors = ['red', 'blue', 'green', 'yellow'];
+  const gridSize = 6;
+  const game = document.getElementById('game');
+  const scoreEl = document.getElementById('score');
+  const highScoreEl = document.getElementById('highScore');
+  const movesEl = document.getElementById('moves');
+  const levelEl = document.getElementById('level');
+  const xpEl = document.getElementById('xp');
+  const nextXPEl = document.getElementById('nextXP');
+  const xpFill = document.getElementById('xp-fill');
+  const hintsEl = document.getElementById('hints');
+  const gameOverText = document.getElementById('game-over');
+
+  let score = 0, moves = 20, level = 1, xp = 0, nextXP = 100, hints = 5;
+  let highScore = localStorage.getItem('dotHighScore') || 0;
+  let isMouseDown = false, currentColor = '', chain = [], dots = [];
+
+  function initGame() {
+    game.innerHTML = '';
+    score = 0;
+    moves = 20;
+    level = 1;
+    xp = 0;
+    hints = 5;
+    nextXP = 100;
+    chain = [];
+    isMouseDown = false;
+    gameOverText.style.display = 'none';
+    updateHUD();
+
+    for (let i = 0; i < gridSize * gridSize; i++) {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+
+      if (Math.random() < 0.60) {
+        dot.classList.add('bonus');
+        dot.textContent = '+';
+      } else {
+        dot.classList.add(colors[Math.floor(Math.random() * colors.length)]);
+      }
+
+      dot.dataset.index = i;
+      game.appendChild(dot);
+    }
+
+    dots = document.querySelectorAll('.dot');
+    dots.forEach(dot => {
+      dot.addEventListener('mousedown', startChain);
+      dot.addEventListener('mouseover', continueChain);
+      dot.addEventListener('touchstart', startChain);
+      dot.addEventListener('touchmove', handleTouchMove);
+    });
+
+    document.addEventListener('mouseup', endChain);
+    document.addEventListener('touchend', endChain);
+
+    highScoreEl.textContent = highScore;
+  }
+
+  function updateHUD() {
+  scoreEl.textContent = score;
+  movesEl.textContent = moves;
+  levelEl.textContent = level;
+  xpEl.textContent = xp;
+  nextXPEl.textContent = nextXP;
+  xpFill.style.width = `${(xp / nextXP) * 100}%`;
+  hintsEl.textContent = hints;
+
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('dotHighScore', highScore);
+  }
+
+  highScoreEl.textContent = highScore;
+
+  const footerHighScore = document.getElementById('footerHighScore');
+  if (footerHighScore) footerHighScore.textContent = highScore;
+}
+  function getColor(dot) {
+    if (dot.classList.contains('bonus')) return 'bonus';
+    return colors.find(color => dot.classList.contains(color));
+  }
+
+  function startChain(e) {
+    if (moves <= 0) return;
+    e.preventDefault();
+    isMouseDown = true;
+    const dot = e.target;
+    currentColor = getColor(dot);
+    if (dot.classList.contains(currentColor)) addToChain(dot);
+  }
+
+  function continueChain(e) {
+    if (!isMouseDown || moves <= 0) return;
+    const dot = e.target;
+    if (
+      getColor(dot) === currentColor &&
+      !dot.classList.contains('selected') &&
+      isAdjacent(dot)
+    ) {
+      addToChain(dot);
+    }
+  }
+
+  function handleTouchMove(e) {
+    const touch = e.touches[0];
+    const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (elem && elem.classList.contains('dot')) {
+      continueChain({ target: elem });
+    }
+  }
+
+  function isAdjacent(dot) {
+    if (chain.length === 0) return true;
+    const last = chain[chain.length - 1];
+    const i1 = parseInt(last.dataset.index);
+    const i2 = parseInt(dot.dataset.index);
+    const row1 = Math.floor(i1 / gridSize);
+    const col1 = i1 % gridSize;
+    const row2 = Math.floor(i2 / gridSize);
+    const col2 = i2 % gridSize;
+    return (Math.abs(col1 - col2) + Math.abs(row1 - row2) === 1);
+  }
+
+  function addToChain(dot) {
+    dot.classList.add('selected');
+    chain.push(dot);
+  }
+
+  function gainXP(amount) {
+    xp += amount;
+    while (xp >= nextXP && level < 100) {
+      xp -= nextXP;
+      level++;
+      nextXP = Math.floor(100 + level * 20);
+    }
+  }
+
+  function hasValidMoves() {
+    for (let i = 0; i < dots.length; i++) {
+      const dot = dots[i];
+      const color = getColor(dot);
+      const index = parseInt(dot.dataset.index);
+
+      const neighborIndices = [
+        index - 1, index + 1, index - gridSize, index + gridSize
+      ];
+
+      let matchCount = 1;
+      for (let ni of neighborIndices) {
+        if (ni >= 0 && ni < dots.length && getColor(dots[ni]) === color) {
+          matchCount++;
+          if (matchCount >= 3) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function shuffleBoard() {
+    const regularDots = Array.from(dots).filter(dot => !dot.classList.contains('bonus'));
+    const allColors = regularDots.map(dot => {
+      const color = getColor(dot);
+      colors.forEach(c => dot.classList.remove(c));
+      return color;
+    });
+
+    allColors.sort(() => Math.random() - 0.5);
+
+    regularDots.forEach((dot, idx) => {
+      dot.classList.add(allColors[idx]);
+    });
+  }
+
+  function endChain() {
+    if (chain.length >= 3 && moves > 0) {
+      playBubbleSound();
+      let bonusDots = chain.filter(dot => dot.classList.contains('bonus'));
+let bonusMoves = 0;
+
+if (bonusDots.length >= 3) {
+  bonusMoves = Math.floor(Math.random() * 10) + 1;
+  moves += bonusMoves;
+}
+
+moves -= 1; // Normal move cost
+
+if (moves < 0) moves = 0;
+      if (moves < 0) moves = 0;
+
+      score += chain.length * 10;
+      gainXP(chain.length * 5);
+      updateHUD();
+
+      chain.forEach(dot => {
+        dot.classList.add('remove');
+        setTimeout(() => {
+          dot.classList.remove(...colors, 'remove', 'selected', 'bonus');
+          dot.textContent = '';
+          if (Math.random() < 0.05) {
+            dot.classList.add('bonus');
+            dot.textContent = '+';
+          } else {
+            dot.classList.add(colors[Math.floor(Math.random() * colors.length)]);
+          }
+        }, 250);
+      });
+
+      setTimeout(() => {
+        if (!hasValidMoves() && moves > 0) {
+          shuffleBoard();
+        }
+      }, 300);
+
+    } else {
+      chain.forEach(dot => dot.classList.remove('selected'));
+    }
+
+    chain = [];
+    isMouseDown = false;
+    currentColor = '';
+
+    if (moves <= 0) {
+      gameOverText.style.display = 'block';
+    }
+  }
+
+  function useHint() {
+  if (hints <= 0 || moves <= 0) return;
+
+  function findConnected(index, color, visited = new Set()) {
+    if (visited.has(index)) return [];
+    const dot = dots[index];
+    if (!dot || getColor(dot) !== color) return [];
+
+    visited.add(index);
+    const connected = [dot];
+
+    const row = Math.floor(index / gridSize);
+    const col = index % gridSize;
+
+    const neighbors = [
+      [row - 1, col],
+      [row + 1, col],
+      [row, col - 1],
+      [row, col + 1]
+    ];
+
+    for (let [r, c] of neighbors) {
+      if (r >= 0 && r < gridSize && c >= 0 && c < gridSize) {
+        const ni = r * gridSize + c;
+        connected.push(...findConnected(ni, color, visited));
+      }
+    }
+
+    return connected;
+  }
+
+  for (let i = 0; i < dots.length; i++) {
+    const dot = dots[i];
+    const color = getColor(dot);
+    const group = findConnected(i, color);
+    const uniqueDots = [...new Set(group)];
+
+    if (uniqueDots.length >= 3) {
+      hints--;
+      updateHUD();
+      uniqueDots.forEach(d => d.classList.add('hinted'));
+      setTimeout(() => {
+        uniqueDots.forEach(d => d.classList.remove('hinted'));
+      }, 1500);
+      return;
+    }
+  }
+  }
+function useShuffle() {
+  if (moves <= 0) return;
+  moves--;
+  shuffleBoard();
+  updateHUD();
+
+  if (moves <= 0) {
+    gameOverText.style.display = 'block';
+  }
+}
+function goHome() {
+  const confirmExit = confirm("Do you want to give up?");
+  if (confirmExit) {
+    playButtonSound();
+    setTimeout(() => {
+      window.location.href = "home.html";
+    }, 150); // short delay to let sound play
+  }
+}
+  initGame();
+
+</script>
+<footer style="margin: 10px; font-size: 1rem; color: #aaa;">
+  @ Wais Games
+</footer>
+<audio id="button-sound" src="sounds/button.mp3" preload="auto"></audio>
+<audio id="game-music" src="sounds/musicgame.mp3" preload="auto" loop></audio>
+<script>
+  const buttonSound = document.getElementById('button-sound');
+  const gameMusic = document.getElementById('game-music');
+
+  function playButtonSound() {
+    buttonSound.currentTime = 0;
+    buttonSound.play();
+  }
+
+  // Add click sound to all buttons
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', playButtonSound);
+  });
+
+  // Auto-play game music with user interaction fallback
+  function playMusic() {
+    gameMusic.volume = 0.5;
+    gameMusic.play().catch(() => {
+      // Wait for user interaction if autoplay is blocked
+      document.addEventListener('click', () => {
+        gameMusic.play();
+      }, { once: true });
+    });
+  }
+
+  playMusic(); // Start background music
+</script>
+<script>
+  let soundEnabled = true;
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+
+    const icon = document.getElementById('sound-icon');
+    icon.className = soundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+
+    gameMusic.muted = !soundEnabled;
+    buttonSound.muted = !soundEnabled;
+  }
+</script>
+<script>
+function playBubbleSound() {
+const sound = document.getElementById('bubble-sound');
+if (sound) {
+sound.currentTime = 0;
+sound.play();
+}
+}
+</script>
+<audio id="bubble-sound" src="sounds/bubble.mp3" preload="auto"></audio>
+</body>
+</html>
