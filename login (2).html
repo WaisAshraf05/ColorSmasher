@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - ColorSmasher</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(-45deg, #1e1e2f, #2d2d3f, #3a3a5a, #1e1e2f);
+      background-size: 400% 400%;
+      animation: gradientBG 20s ease infinite;
+      color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .box {
+      background: rgba(30, 30, 48, 0.95);
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 400px;
+      animation: fadeInUp 1s ease forwards;
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 120px;
+      height: auto;
+      border-radius: 10px;
+      animation: fadeInUp 0.8s ease forwards;
+    }
+
+    h2 {
+  margin-bottom: 20px;
+  font-size: 2em; /* Larger font size */
+  font-weight: bold; /* Bold text */
+  color: #fff; /* White text color */
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Subtle text shadow */
+  letter-spacing: 2px; /* Slightly increased letter spacing */
+}
+
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #2d2d44;
+      color: #fff;
+    }
+
+    input::placeholder {
+      color: #aaa;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #3f51b5, #303f9f);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .toggle {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .toggle a {
+      color: #4fc3f7;
+      text-decoration: none;
+    }
+
+    .toggle a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .box {
+        padding: 30px 20px;
+      }
+
+      .logo {
+        width: 130px;
+        height: auto ;
+        margin-bottom: 10px;
+        margin-top: 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box" id="loginBox">
+    <div class="logo-container">
+      <img src="logo.png" alt="Logo" class="logo" />
+    </div>
+    <h2>Login</h2>
+    <input type="text" id="loginUsername" placeholder="Username" required />
+    <input type="password" id="loginPassword" placeholder="Password" required />
+    <button onclick="login()">Login</button>
+    <div class="toggle">
+      Don't have an account? <a href="#" onclick="toggleForm(true)">Register</a>
+    </div>
+  </div>
+
+  <div class="box" id="registerBox" style="display:none">
+    <div class="logo-container">
+      <img src="logo.png" alt="Logo" class="logo" />
+    </div>
+    <h2>Register</h2>
+    <input type="text" id="registerUsername" placeholder="Username" required />
+    <input type="password" id="registerPassword" placeholder="Password" required />
+    <button onclick="register()">Register</button>
+    <div class="toggle">
+      Already have an account? <a href="#" onclick="toggleForm(false)">Login</a>
+    </div>
+  </div>
+
+  <script>
+    function toggleForm(isRegistering) {
+      document.getElementById('loginBox').style.display = isRegistering ? 'none' : 'block';
+      document.getElementById('registerBox').style.display = isRegistering ? 'block' : 'none';
+    }
+
+    function register() {
+      const username = document.getElementById('registerUsername').value.trim();
+      const password = document.getElementById('registerPassword').value.trim();
+
+      if (!username || !password) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      if (localStorage.getItem(username)) {
+        alert("Username already exists!");
+        return;
+      }
+
+      localStorage.setItem(username, JSON.stringify({ password }));
+      alert("Registered successfully! You can now login.");
+      toggleForm(false);
+    }
+
+    function login() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      const user = JSON.parse(localStorage.getItem(username));
+      if (user && user.password === password) {
+        localStorage.setItem("currentUser", username);
+        window.location.href = "home.html";
+      } else {
+        alert("Invalid username or password");
+      }
+    }
+  </script>
+
+</body>
+</html>
