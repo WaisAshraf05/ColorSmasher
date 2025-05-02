@@ -150,11 +150,21 @@
         gap: 15px;
       }
     }
+    #welcomeMessage {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  color: #f0f0f0;
+}
   </style>
 </head>
 <body>
 
-  <div class="version" title="Last updated: April 2025">v1.0.0</div>
+  <div class="version" title="Last updated: April 2025">v1.0.0
+  <div>
+<h2 id="welcomeMessage">Welcome, Player!</h2>
+  </div>
+  </div>
+  
 
   <header>
     <img src="logo.png" alt="ColorSmasher Logo" class="logo" />
@@ -163,6 +173,7 @@
   <div class="menu">
     <button class="button" onclick="startGame()"><i class="fas fa-play"></i> Play</button>
     <button class="button" onclick="showInstructions()"><i class="fas fa-question-circle"></i> How to Play</button>
+    <button class="button" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</button>
     <button class="toggle-sound" onclick="toggleSound()"><i class="fas fa-volume-up"></i> Sound: On</button>
   </div>
 
@@ -257,6 +268,20 @@
       if (e.key === "Enter") startGame();
     });
   </script>
-
+<script>
+  function logoutUser() {
+    localStorage.removeItem("currentUser");
+    window.location.href = "login.html";
+  }
+  
+  window.onload = () => {
+    const user = localStorage.getItem("currentUser");
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("welcomeMessage").textContent = "Welcome, " + user + "!";
+    }
+  };
+</script>
 </body>
 </html>
